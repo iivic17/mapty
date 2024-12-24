@@ -1,22 +1,19 @@
 "use strict";
 
-const form = document.querySelector(".form");
-const containerWorkouts = document.querySelector(".workouts");
-const inputType = document.querySelector(".form__input--type");
-const inputDistance = document.querySelector(".form__input--distance");
-const inputDuration = document.querySelector(".form__input--duration");
-const inputCadence = document.querySelector(".form__input--cadence");
-const inputElevation = document.querySelector(".form__input--elevation");
-
 class Workout {
-  date = new Date();
-  id = String(Date.now()).slice(-10);
+  #date = new Date();
+  #id = String(Date.now()).slice(-10);
+  #coords;
+  #distance;
+  #duration;
+  #type;
+  #description;
 
   constructor(coords, distance, duration, type) {
-    this.coords = coords;
-    this.distance = distance;
-    this.duration = duration;
-    this.type = type;
+    this.#coords = coords;
+    this.#distance = distance;
+    this.#duration = duration;
+    this.#type = type;
     this.#setDescription();
   }
 
@@ -36,9 +33,37 @@ class Workout {
       "December",
     ];
 
-    this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
-      months[this.date.getMonth()]
-    } ${this.date.getDate()}`;
+    this.#description = `${this.#type[0].toUpperCase()}${this.#type.slice(
+      1
+    )} on ${months[this.#date.getMonth()]} ${this.#date.getDate()}`;
+  }
+
+  get date() {
+    return this.#date;
+  }
+
+  get id() {
+    return this.#id;
+  }
+
+  get coords() {
+    return this.#coords;
+  }
+
+  get distance() {
+    return this.#distance;
+  }
+
+  get duration() {
+    return this.#duration;
+  }
+
+  get type() {
+    return this.#type;
+  }
+
+  get description() {
+    return this.#description;
   }
 }
 
@@ -46,11 +71,10 @@ class Running extends Workout {
   constructor(coords, distance, duration, cadence) {
     super(coords, distance, duration, "running");
     this.cadence = cadence;
-    this.calcPace();
-    console.log(this);
+    this.#calcPace();
   }
 
-  calcPace() {
+  #calcPace() {
     this.pace = this.duration / this.distance;
     return this.pace;
   }
@@ -60,11 +84,10 @@ class Cycling extends Workout {
   constructor(coords, distance, duration, elevationGain) {
     super(coords, distance, duration, "cycling");
     this.elevationGain = elevationGain;
-    this.calcSpeed();
-    console.log(this);
+    this.#calcSpeed();
   }
 
-  calcSpeed() {
+  #calcSpeed() {
     this.speed = this.distance / (this.duration / 60);
     return this.speed;
   }
@@ -76,12 +99,26 @@ class App {
   #workouts = [];
   #zoomLevel = 14;
 
+  #form = document.querySelector(".form");
+  #containerWorkouts = document.querySelector(".workouts");
+  #inputType = document.querySelector(".form__input--type");
+  #inputDistance = document.querySelector(".form__input--distance");
+  #inputDuration = document.querySelector(".form__input--duration");
+  #inputCadence = document.querySelector(".form__input--cadence");
+  #inputElevation = document.querySelector(".form__input--elevation");
+
   constructor() {
     this.#getPosition();
 
-    form.addEventListener("submit", this.#newWorkout.bind(this));
-    inputType.addEventListener("change", this.#toggleElevationField.bind(this));
-    containerWorkouts.addEventListener("click", this.#moveToPopup.bind(this));
+    this.#form.addEventListener("submit", this.#newWorkout.bind(this));
+    this.#inputType.addEventListener(
+      "change",
+      this.#toggleElevationField.bind(this)
+    );
+    this.#containerWorkouts.addEventListener(
+      "click",
+      this.#moveToPopup.bind(this)
+    );
   }
 
   #getPosition() {
@@ -111,25 +148,29 @@ class App {
 
   #showForm(e) {
     this.#mapEvent = e;
-    form.classList.remove("hidden");
-    inputDistance.focus();
+    this.#form.classList.remove("hidden");
+    this.#inputDistance.focus();
   }
 
   #hideForm() {
-    inputDistance.value =
-      inputDuration.value =
-      inputCadence.value =
-      inputElevation.value =
+    this.#inputDistance.value =
+      this.#inputDuration.value =
+      this.#inputCadence.value =
+      this.#inputElevation.value =
         "";
 
-    form.style.display = "none";
-    form.classList.add("hidden");
-    setTimeout(() => (form.style.display = "grid"), 1000);
+    this.#form.style.display = "none";
+    this.#form.classList.add("hidden");
+    setTimeout(() => (this.#form.style.display = "grid"), 1000);
   }
 
   #toggleElevationField() {
-    inputElevation.closest(".form__row").classList.toggle("form__row--hidden");
-    inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
+    this.#inputElevation
+      .closest(".form__row")
+      .classList.toggle("form__row--hidden");
+    this.#inputCadence
+      .closest(".form__row")
+      .classList.toggle("form__row--hidden");
   }
 
   #renderWorkoutMarker(workout) {
@@ -200,7 +241,7 @@ class App {
       `;
     }
 
-    form.insertAdjacentHTML("afterend", html);
+    this.#form.insertAdjacentHTML("afterend", html);
   }
 
   #newWorkout(e) {
@@ -214,14 +255,14 @@ class App {
 
     e.preventDefault();
 
-    const type = inputType.value;
-    const distance = Number(inputDistance.value);
-    const duration = Number(inputDuration.value);
+    const type = this.#inputType.value;
+    const distance = Number(this.#inputDistance.value);
+    const duration = Number(this.#inputDuration.value);
     const { lat, lng } = this.#mapEvent.latlng;
     let workout;
 
     if (type === "running") {
-      const cadence = Number(inputCadence.value);
+      const cadence = Number(this.#inputCadence.value);
 
       if (
         !validInputs(distance, duration, cadence) ||
@@ -234,7 +275,7 @@ class App {
     }
 
     if (type === "cycling") {
-      const elevation = Number(inputElevation.value);
+      const elevation = Number(this.#inputElevation.value);
 
       if (
         !validInputs(distance, duration, elevation) ||
@@ -264,9 +305,9 @@ class App {
     this.#map.setView(workout.coords, this.#zoomLevel, {
       animate: true,
       pan: {
-        duration: 1
-      }
-    })
+        duration: 1,
+      },
+    });
   }
 }
 
