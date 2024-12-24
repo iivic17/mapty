@@ -1,7 +1,7 @@
 "use strict";
 
 class Workout {
-  _date = new Date(); // Protected instead of private
+  _date = new Date();
   _id = String(Date.now()).slice(-10);
   _coords;
   _distance;
@@ -38,7 +38,7 @@ class Workout {
     )} on ${months[this._date.getMonth()]} ${this._date.getDate()}`;
   }
 
-  toJSON() {
+  toJson() {
     return {
       date: this._date,
       id: this._id,
@@ -105,9 +105,9 @@ class Running extends Workout {
     this._pace = this._duration / this._distance;
   }
 
-  toJSON() {
+  toJson() {
     return {
-      ...super.toJSON(),
+      ...super.toJson(),
       cadence: this._cadence,
       pace: this._pace,
     };
@@ -151,9 +151,9 @@ class Cycling extends Workout {
     this._speed = this._distance / (this._duration / 60);
   }
 
-  toJSON() {
+  toJson() {
     return {
-      ...super.toJSON(),
+      ...super.toJson(),
       elevationGain: this._elevationGain,
       speed: this._speed,
     };
@@ -421,7 +421,7 @@ class App {
   }
 
   #setLocalStorage() {
-    const data = this.#workouts.map((workout) => workout.toJSON());
+    const data = this.#workouts.map((workout) => workout.toJson());
     localStorage.setItem("mapty-workouts", JSON.stringify(data));
   }
 
