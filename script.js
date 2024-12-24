@@ -10,7 +10,7 @@ const inputElevation = document.querySelector(".form__input--elevation");
 
 class Workout {
   date = new Date();
-  id = String(new Date()).slice(-10);
+  id = String(Date.now()).slice(-10);
 
   constructor(coords, distance, duration, type) {
     this.coords = coords;
@@ -47,6 +47,7 @@ class Running extends Workout {
     super(coords, distance, duration, "running");
     this.cadence = cadence;
     this.calcPace();
+    console.log(this);
   }
 
   calcPace() {
@@ -60,6 +61,7 @@ class Cycling extends Workout {
     super(coords, distance, duration, "cycling");
     this.elevationGain = elevationGain;
     this.calcSpeed();
+    console.log(this);
   }
 
   calcSpeed() {
@@ -151,7 +153,7 @@ class App {
   #renderWorkout(workout) {
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
-      <h2 class="workout__title">Running on April 14</h2>
+      <h2 class="workout__title">${workout.description}</h2>
       <div class="workout__details">
         <span class="workout__icon">${
           workout.type === "running" ? "🏃‍♂️" : "🚴‍♀️"
