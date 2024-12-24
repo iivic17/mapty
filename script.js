@@ -1,23 +1,23 @@
 "use strict";
 
 class Workout {
-  #date = new Date();
-  #id = String(Date.now()).slice(-10);
-  #coords;
-  #distance;
-  #duration;
-  #type;
-  #description;
+  _date = new Date(); // Protected instead of private
+  _id = String(Date.now()).slice(-10);
+  _coords;
+  _distance;
+  _duration;
+  _type;
+  _description;
 
   constructor(coords, distance, duration, type) {
-    this.#coords = coords;
-    this.#distance = distance;
-    this.#duration = duration;
-    this.#type = type;
-    this.#setDescription();
+    this._coords = coords;
+    this._distance = distance;
+    this._duration = duration;
+    this._type = type;
+    this._setDescription();
   }
 
-  #setDescription() {
+  _setDescription() {
     const months = [
       "January",
       "February",
@@ -33,63 +33,153 @@ class Workout {
       "December",
     ];
 
-    this.#description = `${this.#type[0].toUpperCase()}${this.#type.slice(
+    this._description = `${this._type[0].toUpperCase()}${this._type.slice(
       1
-    )} on ${months[this.#date.getMonth()]} ${this.#date.getDate()}`;
+    )} on ${months[this._date.getMonth()]} ${this._date.getDate()}`;
+  }
+
+  toJSON() {
+    return {
+      date: this._date,
+      id: this._id,
+      coords: this._coords,
+      distance: this._distance,
+      duration: this._duration,
+      type: this._type,
+      description: this._description,
+    };
+  }
+
+  static fromJSON(data) {
+    const workout = new Workout(
+      data.coords,
+      data.distance,
+      data.duration,
+      data.type
+    );
+    workout._date = new Date(data.date);
+    workout._id = data.id;
+    return workout;
   }
 
   get date() {
-    return this.#date;
+    return this._date;
   }
 
   get id() {
-    return this.#id;
+    return this._id;
   }
 
   get coords() {
-    return this.#coords;
+    return this._coords;
   }
 
   get distance() {
-    return this.#distance;
+    return this._distance;
   }
 
   get duration() {
-    return this.#duration;
+    return this._duration;
   }
 
   get type() {
-    return this.#type;
+    return this._type;
   }
 
   get description() {
-    return this.#description;
+    return this._description;
   }
 }
 
 class Running extends Workout {
+  _pace;
+  _cadence;
+
   constructor(coords, distance, duration, cadence) {
     super(coords, distance, duration, "running");
-    this.cadence = cadence;
-    this.#calcPace();
+    this._cadence = cadence;
+    this._calcPace();
   }
 
-  #calcPace() {
-    this.pace = this.duration / this.distance;
-    return this.pace;
+  _calcPace() {
+    this._pace = this._duration / this._distance;
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      cadence: this._cadence,
+      pace: this._pace,
+    };
+  }
+
+  static fromJSON(data) {
+    const running = new Running(
+      data.coords,
+      data.distance,
+      data.duration,
+      data.cadence
+    );
+    running._date = new Date(data.date);
+    running._id = data.id;
+  
+    running._calcPace();
+  
+    return running;
+  }
+
+  get cadence() {
+    return this._cadence;
+  }
+
+  get pace() {
+    return this._pace;
   }
 }
 
 class Cycling extends Workout {
+  _elevationGain;
+  _speed;
+
   constructor(coords, distance, duration, elevationGain) {
     super(coords, distance, duration, "cycling");
-    this.elevationGain = elevationGain;
-    this.#calcSpeed();
+    this._elevationGain = elevationGain;
+    this._calcSpeed();
   }
 
-  #calcSpeed() {
-    this.speed = this.distance / (this.duration / 60);
-    return this.speed;
+  _calcSpeed() {
+    this._speed = this._distance / (this._duration / 60);
+  }
+
+  toJSON() {
+    return {
+      ...super.toJSON(),
+      elevationGain: this._elevationGain,
+      speed: this._speed,
+    };
+  }
+
+  static fromJSON(data) {
+    const cycling = new Cycling(
+      data.coords,
+      data.distance,
+      data.duration,
+      data.elevationGain
+    );
+    cycling._date = new Date(data.date);
+    cycling._id = data.id;
+  
+    cycling._calcSpeed();
+  
+    return cycling;
+  }
+
+  get elevationGain() {
+    return this._elevationGain;
+  }
+
+  get speed() {
+    return this._speed;
   }
 }
 
@@ -119,6 +209,15 @@ class App {
       "click",
       this.#moveToPopup.bind(this)
     );
+
+    this.#initializeWorkouts();
+  }
+
+  #initializeWorkouts() {
+    this.#getLocalStorage();
+    if (this.#workouts.length > 0) {
+      this.#renderWorkouts();
+    }
   }
 
   #getPosition() {
@@ -140,6 +239,10 @@ class App {
     }).addTo(this.#map);
 
     this.#map.on("click", this.#showForm.bind(this));
+
+    if (this.#workouts.length > 0) {
+      this.#workouts.forEach((workout) => this.#renderWorkoutMarker(workout));
+    }
   }
 
   #handleLoadMapErr() {
@@ -189,6 +292,12 @@ class App {
         `${workout.type === "running" ? "🏃‍♂️" : "🚴‍♀️"} ${workout.description}`
       )
       .openPopup();
+  }
+
+  #renderWorkouts() {
+    this.#workouts.forEach((workout) => {
+      this.#renderWorkout(workout);
+    });
   }
 
   #renderWorkout(workout) {
@@ -291,6 +400,7 @@ class App {
     this.#renderWorkoutMarker(workout);
     this.#renderWorkout(workout);
     this.#hideForm();
+    this.#setLocalStorage();
   }
 
   #moveToPopup(e) {
@@ -307,6 +417,22 @@ class App {
       pan: {
         duration: 1,
       },
+    });
+  }
+
+  #setLocalStorage() {
+    const data = this.#workouts.map((workout) => workout.toJSON());
+    localStorage.setItem("mapty-workouts", JSON.stringify(data));
+  }
+
+  #getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem("mapty-workouts"));
+    if (!data) return;
+
+    this.#workouts = data.map((item) => {
+      if (item.type === "running") return Running.fromJSON(item);
+      if (item.type === "cycling") return Cycling.fromJSON(item);
+      return Workout.fromJSON(item);
     });
   }
 }
