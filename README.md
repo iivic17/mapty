@@ -1,6 +1,6 @@
 # Mapty
 
-Mapty is a modern JavaScript application designed for tracking and managing running and cycling workouts directly on an interactive map. By leveraging geolocation and mapping technologies, it provides an intuitive interface for users to log their fitness activities while visualizing their routes. Built with a focus on clean, scalable code and interactive user experience, Mapty demonstrates advanced JavaScript techniques and modern web development practices.
+Mapty is a modern JavaScript application designed for tracking and managing running and cycling workouts directly on an interactive map. By leveraging geolocation and mapping technologies, it provides an intuitive interface for users to log their fitness activities while visualizing their routes. Built with a focus on clean, scalable code and interactive user experience.
 
 ![Mapty Screenshot](mapty-mockup.png)
 
